@@ -1,5 +1,5 @@
-from pt4models import close_data_connection
-from hero import Hero
+from database_management import close_data_connection
+from hero import PT4Hero, HM2Hero
 from datetime import datetime, timedelta
 import tkinter # needed for pyinstaller
 import tkinter.filedialog # needed for pyinstaller
@@ -7,13 +7,22 @@ import tkinter.filedialog # needed for pyinstaller
 hero_names = None
 hero_list = []
 
+db_type = None
+while not db_type:
+    db_type = input("Please enter 'H' for HM2, 'P' for PT4: ")
+    if db_type.lower() not in ['h', 'p']:
+        db_type = None
+
 while not hero_list:
     hero_names = input("Please enter player name(s): ")
     for name in hero_names.split():
         try:
-            hero_list.append(Hero(name))
-        except:
-            print("Something went wrong. Can't find a player named {}".format(name))
+            if db_type.lower() == 'h':
+                hero_list.append(HM2Hero(name))
+            elif db_type.lower() == 'p':
+                hero_list.append(PT4Hero(name))
+        except Exception:
+            print("Something went wrong. Can't find a player named {}.".format(name))
 
 start_date = None
 
