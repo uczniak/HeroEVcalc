@@ -1,5 +1,5 @@
 # HeroEVcalc
-Script calculating $EV for HERO SNGs on partypoker (by connecting to PT4 database).
+Script calculating $EV for HERO SNGs on partypoker (by connecting to PT4/HM2 database).
 
 Assumes PostgreSQL user is 'postgres', prompts for password and DB name.
 Proceeds to prompt for player name(s) and start/end dates (optional).
