@@ -208,7 +208,8 @@ class HM2Hero(Hero):
             api_response = requests.get('http://localhost:8001/Query', params = {'q': hmql})
             tourney_chip_ev = int(api_response.json()["Results"][0]["Chips(EVAdjusted)"]
                                   .replace(',','')
-                                  .replace(' ',''))
+                                  .replace(' ','')
+                                  .replace('\xa0',''))
             self.chip_ev += tourney_chip_ev
             self.ev_from_chips += tourney_chip_ev * 0.75 / 500 * float(tourney.buyinincents) / 100 - float(tourney
                                                                                     .rakeincents) / 100 * 0.75
