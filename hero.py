@@ -3,6 +3,7 @@ from pt4models import (TourneyResults,TourneySummary,TourneyHandPlayerStatistics
 from hm2models import (Players,Tourneydata,Handhistories)
 import matplotlib.pyplot as plt
 import requests
+import re
 
 class Hero:
     def __init__(self, name):
@@ -175,7 +176,10 @@ class HM2Hero(Hero):
         self.name = temp.playername
 
     def read_data(self, start_date, end_date):
-        bounty_string = "Bounty Won! {}".format(self.name)
+        # bounty_string = "Bounty Won! {}".format(self.name)
+        bounty_pattern = re.compile(r"\$(?P<amount>[0-9,\.]+) USD Bounty Won! (?P<name>[\S]+) knocked out")
+        # win_pattern = re.compile(r"Player (?P<name>[\S]+) finished in 1 place and received \$(?P<amount>[0-9,\.]+) USD")
+
         tourneys = (Tourneydata.select()
                     .where((Tourneydata.player == self.id)
                            & (Tourneydata.firsthandtimestamp > start_date)
@@ -187,6 +191,7 @@ class HM2Hero(Hero):
         for tourney in tourneys:
             tourney_chip_ev = 0
             bounty_collected = False
+            bounty_amt_won = 0
             bounty_cleared = False
             self.tourney_count += 1
 
@@ -194,15 +199,25 @@ class HM2Hero(Hero):
                              .select()
                              .where(Handhistories.tourneynumber == tourney.tourneynumber))
             for hand in tourney_hands:
-                # tourney_chip_ev +=  need to get that from HM2 API
-                if bounty_string in hand.handhistory:
-                    bounty_collected = True
-                elif "Bounty Won!" in hand.handhistory:
-                    bounty_cleared = True
+                # if bounty_string in hand.handhistory:
+                #    bounty_collected = True
+                # elif "Bounty Won!" in hand.handhistory:
+                #    bounty_cleared = True
+                m = bounty_pattern.search(hand.handhistory)
+                if m:
+                    if m.group('name') == self.name:
+                        bounty_collected = True
+                        bounty_amt_won = float(m.group('amount').replace(',',''))
+                    else:
+                        bounty_cleared = True
                 self.hand_count += 1
 
             if not bounty_collected and not bounty_cleared and tourney.finishposition == 1:
                 bounty_collected = True
+                bounty_amt_won = float(tourney.winningsincents) / (240
+                                                                   if float(tourney.winningsincents)
+                                                                      /float(tourney.buyinincents) > 15
+                                                                   else 300)
 
             hmql = 'select statallinevadjustedchips from stats where tourneynumber="{}"'.format(tourney.tourneynumber)
             api_response = requests.get('http://localhost:8001/Query', params = {'q': hmql})
@@ -223,5 +238,5 @@ class HM2Hero(Hero):
             self.rake_paid += float(tourney.rakeincents) / 100
             self.buyins_paid += float(tourney.buyinincents + tourney.rakeincents)/100
             self.ev_line.append(self.bounty_ev+self.ev_from_chips)
-            self.real_line.append(self.real_line[-1] + float(tourney.winningsincents)/100
+            self.real_line.append(self.real_line[-1] + float(tourney.winningsincents)/100 + bounty_amt_won
                                   -float(tourney.buyinincents)/100 - float(tourney.rakeincents)/100)
