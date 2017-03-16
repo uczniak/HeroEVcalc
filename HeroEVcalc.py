@@ -50,6 +50,32 @@ while not end_date:
         print("Something went wrong. Wrong date format.")
         end_date = None
 
+min_stake = None
+
+while min_stake is None:
+    try:
+        temp = input("Please enter minimum stake to be included, empty for no minimum: ")
+        if temp == "":
+            min_stake = 0
+        else:
+            min_stake = int(temp)
+    except:
+        print("Something went wrong. Wrong stake format.")
+        min_stake = None
+
+max_stake = None
+
+while max_stake is None:
+    try:
+        temp = input("Please enter maximum stake to be included, empty for no maximum: ")
+        if temp == "":
+            max_stake = float('Inf')
+        else:
+            max_stake = float(temp)
+    except:
+        print("Something went wrong. Wrong stake format.")
+        max_stake = None
+
 for current_hero in hero_list:
     current_hero.read_data(start_date,end_date)
 
