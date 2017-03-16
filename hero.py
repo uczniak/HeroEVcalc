@@ -104,13 +104,15 @@ class PT4Hero(Hero):
         self.bounty_count += 0.5
         self.bounty_ev += float(tourney.amt_buyin) * 0.5
 
-    def read_data(self, start_date, end_date):
+    def read_data(self, start_date, end_date, min_stake, max_stake):
         tourneys = (TourneyResults.select(TourneyResults, TourneySummary, TourneyTableType)
                     .join(TourneySummary, on=(TourneyResults.id_tourney == TourneySummary.id_tourney))
                     .join(TourneyTableType, on=(TourneySummary.id_table_type == TourneyTableType.id_table_type))
                     .where((TourneyResults.id_player == self.id)
                            & (TourneySummary.date_start > start_date)
                            & (TourneySummary.date_start < end_date)
+                           & (TourneySummary.amt_buyin + TourneySummary.amt_fee <= max_stake)
+                           & (TourneySummary.amt_buyin + TourneySummary.amt_fee >= min_stake)
                            & (TourneyTableType.val_flags.contains('L')))
                     .order_by(TourneySummary.date_start)
                     .naive())
@@ -175,7 +177,7 @@ class HM2Hero(Hero):
         self.id = temp.player
         self.name = temp.playername
 
-    def read_data(self, start_date, end_date):
+    def read_data(self, start_date, end_date, min_stake, max_stake):
         # bounty_string = "Bounty Won! {}".format(self.name)
         bounty_pattern = re.compile(r"\$(?P<amount>[0-9,\.]+) USD Bounty Won! (?P<name>[\S]+) knocked out")
         # win_pattern = re.compile(r"Player (?P<name>[\S]+) finished in 1 place and received \$(?P<amount>[0-9,\.]+) USD")
@@ -184,6 +186,8 @@ class HM2Hero(Hero):
                     .where((Tourneydata.player == self.id)
                            & (Tourneydata.firsthandtimestamp > start_date)
                            & (Tourneydata.firsthandtimestamp < end_date)
+                           & (Tourneydata.buyinincents + Tourneydata.rakeincents <= 100*max_stake)
+                           & (Tourneydata.buyinincents + Tourneydata.rakeincents >= 100*min_stake)
                            & (Tourneydata.tablesize == 4))
                     .order_by(Tourneydata.firsthandtimestamp)
                     )

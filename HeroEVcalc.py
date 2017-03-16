@@ -77,7 +77,7 @@ while max_stake is None:
         max_stake = None
 
 for current_hero in hero_list:
-    current_hero.read_data(start_date,end_date)
+    current_hero.read_data(start_date,end_date,min_stake,max_stake)
 
 close_data_connection()
 
