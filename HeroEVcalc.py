@@ -1,20 +1,19 @@
-from database_management import close_data_connection
+from database_management import close_data_connection, args
 from hero import PT4Hero, HM2Hero
 from datetime import datetime, timedelta
 import tkinter # needed for pyinstaller
 import tkinter.filedialog # needed for pyinstaller
 
-hero_names = None
+hero_names = ' '.join(args.heronames or [])
 hero_list = []
 
-db_type = None
+db_type = args.dbtype or None
 while not db_type:
     db_type = input("Please enter 'H' for HM2, 'P' for PT4: ")
     if db_type.lower() not in ['h', 'p']:
         db_type = None
 
-while not hero_list:
-    hero_names = input("Please enter player name(s): ")
+while True:
     for name in hero_names.split():
         try:
             if db_type.lower() == 'h':
@@ -23,6 +22,10 @@ while not hero_list:
                 hero_list.append(PT4Hero(name))
         except Exception:
             print("Something went wrong. Can't find a player named {}.".format(name))
+    if hero_list:
+        break
+    else:
+        hero_names = input("Please enter player name(s): ")
 
 start_date = None
 
